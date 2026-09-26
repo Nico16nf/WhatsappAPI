@@ -13,16 +13,20 @@ const whatsappChat = async (client, chatId, message, recipient) => {
 
         const response = await client.sendMessage(chatId, message);
 
+        // A veces el objeto "id" del mensaje todavia no esta completamente
+        // poblado cuando sendMessage resuelve (timing interno de WhatsApp
+        // Web). Si eso pasa, el mensaje SI se mando (sendMessage no lanzo
+        // error), asi que no hay que reportarlo como una falla.
         return {
             status: true,
             message: "Message sent successfully",
             response: {
-                message_id: response.id.id,
-                sent_to: response.to.split('@')[0],
+                message_id: response?.id?.id || response?.id?._serialized || null,
+                sent_to: response?.to ? response.to.split('@')[0] : chatId.split('@')[0],
                 sent_on: recipient,
                 status: "sent",
                 type: "message",
-                timestamp: response.timestamp,
+                timestamp: response?.timestamp || Math.floor(Date.now() / 1000),
                 event: "message_sent"
             }
         };
